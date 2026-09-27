@@ -22,9 +22,25 @@ public struct GmailMessageAttributes: Sendable, Hashable {
     ///   - messageID: Gmail's persistent message ID.
     ///   - threadID: Gmail's persistent thread ID.
     ///   - labels: The Gmail labels applied to the message.
-    public init(messageID: UInt64, threadID: UInt64, labels: [String]) {
+    public init(messageID: UInt64, threadID: UInt64, labels: [String], flags: [Flag]? = nil) {
         self.messageID = messageID
         self.threadID = threadID
         self.labels = labels
+        self.flags = flags
+    }
+
+    /// The message's flags, when they were requested (`includeFlags`); nil otherwise.
+    public let flags: [Flag]?
+
+    /// Complete records keyed by returned UID; partial ones are dropped.
+    static func results(from records: [GmailAttributeRecord]) -> [UID: GmailMessageAttributes] {
+        var result: [UID: GmailMessageAttributes] = [:]
+        for record in records {
+            guard let uid = record.uid, let messageID = record.messageID, let threadID = record.threadID
+            else { continue }
+            result[uid] = GmailMessageAttributes(messageID: messageID, threadID: threadID,
+                                                 labels: record.labels, flags: record.flags)
+        }
+        return result
     }
 }

@@ -10,7 +10,7 @@ struct MailboxAttributesTests {
         // RFC 8457). Mailbox names are localised ("[Google Mail]/Alle Nachrichten"),
         // so the attribute is the only reliable way to find these mailboxes.
         let allMail = Mailbox.Info.Attributes(from: [
-            .hasNoChildren, NIOIMAPCore.MailboxInfo.Attribute("\\All"),
+            .hasNoChildren, NIOIMAPCore.MailboxInfo.Attribute("\\All")
         ])
         #expect(allMail.contains(.all))
         #expect(allMail.contains(.hasNoChildren))

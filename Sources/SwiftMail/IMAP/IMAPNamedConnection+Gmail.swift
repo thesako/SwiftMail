@@ -12,23 +12,12 @@ extension IMAPNamedConnection {
     /// Requires the `X-GM-EXT-1` capability; other IMAP servers answer with a
     /// tagged BAD. Gate calls on `supportsGmailExtensions`.
     public func fetchGmailAttributes(
-        for identifierSet: UIDSet
+        for identifierSet: UIDSet,
+        changedSince: UInt64? = nil,
+        includeFlags: Bool = false
     ) async throws -> [UID: GmailMessageAttributes] {
-        let command = FetchGmailAttributesCommand(identifierSet: identifierSet)
-        let records = try await executeCommand(command)
-
-        var result: [UID: GmailMessageAttributes] = [:]
-        for record in records {
-            guard let uid = record.uid,
-                  let messageID = record.messageID,
-                  let threadID = record.threadID
-            else { continue }
-            result[uid] = GmailMessageAttributes(
-                messageID: messageID,
-                threadID: threadID,
-                labels: record.labels
-            )
-        }
-        return result
+        let command = FetchGmailAttributesCommand(
+            identifierSet: identifierSet, changedSince: changedSince, includeFlags: includeFlags)
+        return GmailMessageAttributes.results(from: try await executeCommand(command))
     }
 }
