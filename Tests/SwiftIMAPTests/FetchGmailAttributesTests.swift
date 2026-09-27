@@ -147,7 +147,7 @@ struct FetchGmailAttributesTests {
 
     // MARK: - Helpers
 
-    private func executeFetch(_ rawResponses: [String]) async throws -> [GmailAttributeRecord] {
+    func executeFetch(_ rawResponses: [String]) async throws -> [GmailAttributeRecord] {
         let channel = try await NIOAsyncTestingChannel.withIMAPClientHandler()
 
         let promise = channel.eventLoop.makePromise(of: [GmailAttributeRecord].self)

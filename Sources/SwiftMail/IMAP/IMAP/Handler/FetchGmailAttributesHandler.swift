@@ -11,6 +11,8 @@ struct GmailAttributeRecord: Sendable {
     var messageID: UInt64?
     var threadID: UInt64?
     var labels: [String] = []
+    /// Present only when FLAGS was requested.
+    var flags: [Flag]?
 }
 
 final class FetchGmailAttributesHandler: BaseIMAPCommandHandler<[GmailAttributeRecord]>,
@@ -54,6 +56,7 @@ final class FetchGmailAttributesHandler: BaseIMAPCommandHandler<[GmailAttributeR
             case .gmailMessageID(let messageID): record.messageID = messageID
             case .gmailThreadID(let threadID): record.threadID = threadID
             case .gmailLabels(let labels): record.labels = labels.map { $0.makeDisplayString() }
+            case .flags(let flags): record.flags = flags.map(Flag.init(nio:))
             default: break
         }
     }
