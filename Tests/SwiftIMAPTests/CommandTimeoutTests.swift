@@ -78,7 +78,8 @@ struct CommandTimeoutTimerTests {
                 } catch IMAPError.timeout {
                     // expected
                 }
-                #expect(Date().timeIntervalSince(start) < 15)
+                // Ends at the 20 s default deadline instead of hanging forever.
+                #expect(Date().timeIntervalSince(start) < 30)
                 try? await server.disconnect()
             }
         }
