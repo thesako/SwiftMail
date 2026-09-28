@@ -45,7 +45,10 @@ protocol IMAPTaggedCommand: IMAPCommand {
 
 // Provide reasonable defaults.
 extension IMAPCommand {
-    var timeoutSeconds: Int { return 5 }
+    // 20 s, not 5: Gmail has been seen answering every command in ~3.5 s for
+    // a large account, so a 5 s deadline fired spuriously (NAMESPACE right
+    // after LOGIN) and forced a reconnect and a second login.
+    var timeoutSeconds: Int { return 20 }
 
     func validate() throws {
         // Default implementation does no validation
