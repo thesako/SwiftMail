@@ -22,6 +22,20 @@ extension FetchGmailAttributesTests {
         #expect(wire.contains("(UID FLAGS X-GM-MSGID X-GM-THRID X-GM-LABELS) (CHANGEDSINCE 42)"))
     }
 
+    /// Incremental sync asks once over the whole mailbox: `1:*`, not UID windows.
+    @Test
+    func testOpenEndedRangeIsOneStarRange() async throws {
+        let channel = try await NIOAsyncTestingChannel.withIMAPClientHandler()
+        let command = FetchGmailAttributesCommand(identifierSet: UIDSet(UID(1)...), changedSince: 42, includeFlags: true)
+        let wrapped = IMAPClientHandler.OutboundIn.part(CommandStreamPart.tagged(command.toTaggedCommand(tag: "A001")))
+        try await channel.writeAndFlush(wrapped)
+
+        var outbound = try #require(try await channel.readOutbound(as: ByteBuffer.self))
+        let wire = outbound.readString(length: outbound.readableBytes) ?? ""
+
+        #expect(wire.contains("UID FETCH 1:* (UID FLAGS X-GM-MSGID X-GM-THRID X-GM-LABELS) (CHANGEDSINCE 42)"))
+    }
+
     @Test
     func testWithoutOptionsTheCommandIsUnchanged() {
         let command = FetchGmailAttributesCommand(identifierSet: UIDSet([UID(1)]))
