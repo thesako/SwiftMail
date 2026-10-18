@@ -21,6 +21,7 @@ public enum IMAPError: Error {
     /// server's optional list of charsets it does accept; empty when it named none.
     case searchCharsetNotSupported(supportedCharsets: [String], reason: String)
     case createFailed(String)
+    case subscribeFailed(String)
     case deleteFailed(String)
     case renameFailed(String)
     case copyFailed(String)
@@ -76,6 +77,8 @@ extension IMAPError: CustomStringConvertible {
                 return "Search charset not supported: \(reason)"
             case .createFailed(let reason):
                 return "Create mailbox failed: \(reason)"
+            case .subscribeFailed(let reason):
+                return "Subscribe mailbox failed: \(reason)"
             case .deleteFailed(let reason):
                 return "Delete mailbox failed: \(reason)"
             case .renameFailed(let reason):
@@ -144,6 +147,8 @@ extension IMAPError: LocalizedError {
                     + "it supports \(supportedCharsets.joined(separator: ", "))"
             case .createFailed(let reason):
                 return "Failed to create mailbox: \(reason)"
+            case .subscribeFailed(let reason):
+                return "Failed to subscribe to mailbox: \(reason)"
             case .deleteFailed(let reason):
                 return "Failed to delete mailbox: \(reason)"
             case .renameFailed(let reason):

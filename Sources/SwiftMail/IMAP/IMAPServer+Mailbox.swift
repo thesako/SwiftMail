@@ -22,6 +22,13 @@ extension IMAPServer {
         try await executeCommand(command)
     }
 
+    /// Subscribes to a mailbox (`SUBSCRIBE`), so clients that list only
+    /// subscribed folders show it. Many servers do not subscribe a mailbox on CREATE.
+    /// - Throws: `IMAPError.subscribeFailed` if the server refuses.
+    public func subscribeMailbox(_ mailboxName: String) async throws {
+        try await executeCommand(SubscribeMailboxCommand(mailboxName: resolveMailboxPath(mailboxName)))
+    }
+
     /**
      Rename a mailbox on the server
 
@@ -214,5 +221,24 @@ extension IMAPServer {
         let command = StatusCommand(mailboxName: resolveMailboxPath(mailboxName), attributes: attributes)
         let status: NIOIMAPCore.MailboxStatus = try await executeCommand(command)
         return Mailbox.Status(nio: status)
+    }
+}
+
+// MARK: - CONDSTORE
+
+extension IMAPServer {
+    /// Flags and `MODSEQ` of the messages in `identifierSet` whose modification
+    /// sequence exceeds `changedSince` (`UID FETCH … (UID FLAGS MODSEQ) (CHANGEDSINCE n)`).
+    ///
+    /// Requires CONDSTORE; a server without it answers BAD. Gate calls on the
+    /// selection's `highestModSequence` being non-nil. The modifier itself enables
+    /// CONDSTORE for the session, so no ENABLE is sent. A message reported without
+    /// UID, FLAGS or MODSEQ is left out.
+    public func fetchFlagChanges(for identifierSet: UIDSet, changedSince: UInt64) async throws -> [MessageFlagChange] {
+        let command = FetchFlagChangesCommand(identifierSet: identifierSet, changedSince: changedSince)
+        return try await executeCommand(command).compactMap { record in
+            guard let uid = record.uid, let flags = record.flags, let modSeq = record.modSequence else { return nil }
+            return MessageFlagChange(uid: uid, flags: flags, modSequence: modSeq)
+        }
     }
 }
