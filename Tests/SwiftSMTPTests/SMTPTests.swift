@@ -9,6 +9,27 @@ import Testing
 
 @Suite(.serialized, .timeLimit(.minutes(1)))
 struct SMTPTests {
+    @Test("A set date is the Date header every time the content is built")
+    func setDateIsStable() async throws {
+        var email = Email(
+            sender: EmailAddress(address: "sender@example.com"),
+            recipients: [EmailAddress(address: "recipient@example.com")],
+            subject: "Dated",
+            textBody: "Hello"
+        )
+        email.date = Date(timeIntervalSince1970: 1_700_000_000)
+        func dateLine(_ content: String) -> String? {
+            content.components(separatedBy: "\r\n").first { $0.hasPrefix("Date: ") }
+        }
+        let first = try #require(dateLine(email.constructContent()))
+        try await Task.sleep(for: .milliseconds(1100))
+        #expect(dateLine(email.constructContent()) == first)
+        let parser = DateFormatter()
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        parser.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        #expect(parser.date(from: String(first.dropFirst(6))) == email.date)
+    }
+
     @Test
     func testPlaceholder() {
         // This is just a placeholder test to ensure the test target can compile
