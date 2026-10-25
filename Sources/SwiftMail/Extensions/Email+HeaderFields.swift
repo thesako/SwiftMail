@@ -25,7 +25,7 @@ extension Email {
                 namesBccRecipients: name == "Bcc"))
         }
         fields.append(HeaderField(name: "Subject", value: self.subject.rfc2047EncodedHeader()))
-        fields.append(HeaderField(name: "Date", value: Self.rfc2822Date()))
+        fields.append(HeaderField(name: "Date", value: Self.rfc2822Date(self.date ?? Date())))
 
         let resolvedHeaderID = resolvedMessageIDHeader()
         let suppressAdditionalMessageID = self.messageID != nil || resolvedHeaderID != nil
@@ -49,11 +49,11 @@ extension Email {
     }
 
     /// Formats the current date in RFC 2822 format for the Date header.
-    private static func rfc2822Date() -> String {
+    private static func rfc2822Date(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        return formatter.string(from: Date())
+        return formatter.string(from: date)
     }
 
     /// Extracts the domain from the sender address for Message-Id generation.

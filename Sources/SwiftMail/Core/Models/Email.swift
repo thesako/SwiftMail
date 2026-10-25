@@ -47,6 +47,16 @@ public struct Email: Sendable {
     public var messageID: MessageID?
 
     /**
+     Optional `Date` header value.
+
+     When set, `constructContent()` writes this date instead of the time it runs,
+     so the SMTP send and the IMAP APPEND of the Sent copy carry the same `Date`.
+
+     When `nil`, the date is the moment the content is constructed.
+     */
+    public var date: Date?
+
+    /**
      Initialize a new email with EmailAddress objects
      - Parameters:
      - sender: The sender of the email
